@@ -1,0 +1,3 @@
+# this file must be non-empty to avoid JAL Unzip failure with an error
+# "Seek" not implemented in TUnzipStream
+# this happens for files of 0 (zero) size
