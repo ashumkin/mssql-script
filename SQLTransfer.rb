@@ -372,7 +372,7 @@ class TScripter < TObject
   end
 
   def saveList
-    # сохраняем список только если не выгружались отдельно взятые объекты
+    # save objects list only if no particular objects were exported
     return if !@cmdLine.objects.empty?
     aFile = File.new(@cmdLine.options.list, "w")
     aFile.write("#!!!DO NOT MODIFY THIS FILE! IT IS GENERATED AUTOMATICALLY!" + $\)
@@ -717,7 +717,7 @@ class TDependency
   end
 
   def self.valid?(line)
-    # комментарии и пустые строки - не объекты
+    # comments and empty lines are not SQL objects
     line.chomp!
     return !(line =~ /^\s*#/ || line.empty?)
   end
@@ -730,10 +730,10 @@ class TDependencies
   end
 
   def sort(a, b)
-    # сортируем TDBObject по типам
+    # sort TDBObject by type
     r = correctType(a) <=> correctType(b)
     return r if r != 0
-    # сортируем по файлу зависимостей для равных типов
+    # for the same types sort by dependencies defined in a file
     r = indexOf(a) <=> indexOf(b)
     return r if r != 0
     r = a.name <=> b.name
@@ -756,9 +756,9 @@ class TDependencies
         break
       end
     end
-    # 0 - индекс объектов не подлежащих прямой сортировке
-    # 1 и выше - индекс существующих
-    # итого, фактически, индекс + 2
+    # 0 - index of objects not to be explicitly sorted
+    # 1 and above - index of existing
+    # so, in fact index equals index + 2
     return r + 1
   end
 
@@ -767,12 +767,12 @@ class TDependencies
   end
 
   def correctType(obj)
-    # "корректировка" типа
-    # для View в функциях
+    # type "correction"
+    # for Views used in functions
     r = obj.type
     if 1 < ( i = indexOf(obj) )
       if !(t = get(i)._type).nil?
-        # если тип переопределён, берём его
+        # take redefined type if it is
         r = t
       end
     end
