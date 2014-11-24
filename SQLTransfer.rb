@@ -270,8 +270,10 @@ private
   end  # parseargs()
 
   def validate
-    if @options.host.empty? || @options.db.empty? || @options.user.empty?
-      puts help
+    @options.host = 'localhost' if @options.host.empty?
+    if @options.db.empty?
+      $stderr.puts 'DB is not defined' if @options.db.empty?
+      $stderr.puts help
       exit
     end
 
@@ -386,7 +388,19 @@ class TScripter < TObject
       @cmdLine.options.list, @cmdLine.options.dep_list, @cmdLine.verbose)
     dbObjects.checkErrors
     # insert script version
-    saveScriptVersion( readDBVersion() )
+    saveScriptVersion(readDBVersion, @cmdLine)
+  end
+
+  def select_version_sql
+    raise "Please, redefine #{self.class.to_s}.select_version_sql method"
+  end
+
+  def update_version_sql(cmdLine)
+    raise "Please, redefine #{self.class.to_s}.update_version_sql method"
+  end
+
+  def saveScriptVersion(version, cmdLine)
+    raise "Please, redefine #{self.class.to_s}.saveScriptVersion method"
   end
 
   def getDBVersion
@@ -403,13 +417,10 @@ class TScripter < TObject
     objConnection.Open(@cmdLine.getConnectionStr)
     # increment/decrement version
     if @cmdLine.incVersion
-      sql = "UPDATE dbo.Info SET Version = Version " \
-        + (@cmdLine.decVersion ? "-" : "+") \
-        + " 1"
-      objConnection.Execute(sql)
+      objConnection.Execute(update_version_sql(@cmdLine))
     end
     # get version
-    objRecordSet.Open("SELECT TOP 1 Version FROM dbo.Info", objConnection)
+    objRecordSet.Open(select_version_sql, objConnection)
     version = ""
     if not objRecordSet.Eof
       version = objRecordSet.Fields(0).Value
@@ -480,17 +491,6 @@ private
         raise 'Undefined object type ' + fullname
     end
     return name, ext, type
-  end
-
-  def saveScriptVersion(version)
-    # read Scripts.txt
-    prevfile = FileReader.readlines(@cmdLine.options.file)
-    version = version.to_s << $\
-    prevfile.insert(0, "--Version=%s%s" % [version, $\])
-    # resave Scripts.txt
-    file = File.new(@cmdLine.options.file, "w")
-    file.write(prevfile.join(""))
-    file.close
   end
 
   def readDBVersion
