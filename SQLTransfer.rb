@@ -157,7 +157,7 @@ class TScripterCmdLine < OptionParser
 
   def log(level, msg)
     if level >= @level
-      puts msg
+      $stderr.puts msg
     end
   end
 
@@ -264,7 +264,7 @@ private
     # No argument, shows at tail.  This will print an options summary.
     # Try it and see!
     on_tail("-h", "--help", "Show this message") do
-      puts help
+      $stderr.puts help
       exit
     end
   end  # parseargs()
@@ -406,11 +406,11 @@ class TScripter < TObject
   def getDBVersion
     initCOM
     if @cmdLine.verbose
-      puts @cmdLine.indicate
-      puts "Getting version..."
+      $stderr.puts @cmdLine.indicate
+      $stderr.puts "Getting version..."
     end
     if @cmdLine.debug
-      puts @cmdLine.getConnectionStr
+      $stderr.puts @cmdLine.getConnectionStr
     end
     objConnection = WIN32OLE.new("ADODB.Connection")
     objRecordSet = WIN32OLE.new("ADODB.Recordset")
@@ -426,7 +426,7 @@ class TScripter < TObject
       version = objRecordSet.Fields(0).Value
     end
     if @cmdLine.verbose
-      puts version
+      $stderr.puts version
     end
     saveDBVersion(version)
     return version
@@ -436,8 +436,8 @@ private
   def dorun
     initCOM
     if @cmdLine.verbose
-      puts "Scripting..."
-      puts @cmdLine.indicate
+      $stderr.puts "Scripting..."
+      $stderr.puts @cmdLine.indicate
     end
     @cmdLine.initObjSQL(@objSQL)
     init
@@ -510,7 +510,7 @@ private
   def connect
     @objSQL.Connect @cmdLine.options.host
     @objDB = @objSQL.Databases(@cmdLine.options.db)
-    puts 'Connected to %s.%s (ID=%d)' % [@cmdLine.options.host, @objDB.Name, @objDB.ID]
+    $stderr.puts 'Connected to %s.%s (ID=%d)' % [@cmdLine.options.host, @objDB.Name, @objDB.ID]
   end
 
   def init
@@ -525,8 +525,8 @@ private
     @objTransfer.ScriptType = scriptParams
     @objTransfer.Script2Type = script2Params
     if @cmdLine.debug
-      puts "ScriptType=#{@objTransfer.ScriptType.to_s}"
-      puts "Script2Type=#{@objTransfer.Script2Type.to_s}"
+      $stderr.puts "ScriptType=#{@objTransfer.ScriptType.to_s}"
+      $stderr.puts "Script2Type=#{@objTransfer.Script2Type.to_s}"
     end
 
     @objTransfer.IncludeDependencies = false
@@ -539,10 +539,9 @@ private
     return false if obj.SystemObject
     @objTransfer.AddObjectByName(obj.Name, objType)
     # indicate progress
-    if @cmdLine.verbose
-      puts obj.Name
-    end
+    $stderr.puts obj.Name if @cmdLine.verbose
     name = "%s.%s.sql" % [obj.Name, suffix]
+    $stderr.puts dir + '/' + name if @cmdLine.verbose
     @objDB.ScriptTransfer(@objTransfer, SQLDMOXfrFile_SingleSummaryFile,
         dir + '/' + name)
     # script triggers for tables
@@ -572,13 +571,13 @@ class TDBObjects < TObject
   end
 
   def concat(dir, out_file, list_file, dep_file, verbose)
-    puts "List files..."
+    $stderr.puts "List files..."
     read(dir, list_file, verbose)
     checkErrors()
     sort(dep_file)
-    puts "\nConcatenating #{@objects.size} files..."
+    $stderr.puts "\nConcatenating #{@objects.size} files..."
     @objects.each do |obj|
-      puts obj if verbose
+      $stderr.puts obj if verbose
       ['deps', 'primary', 'secondary', 'end', 'ext'].each do |name|
         # reverse drops
         unshift = name == 'deps'
@@ -642,7 +641,7 @@ class TDBObjects < TObject
     # get *.sql files only
     files.reject! { |file| !File.file?(file) }
     files.each do |file|
-      puts File.basename(file) if verbose
+      $stderr.puts File.basename(file) if verbose
       @objects << TDBObject.new(self, file)
       checkErrors()
     end
