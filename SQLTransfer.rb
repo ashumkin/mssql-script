@@ -3,6 +3,7 @@
 # encoding: Windows-1251
 
 require File.expand_path('../ConnectionOptions', __FILE__)
+require File.expand_path('../File.rb', __FILE__)
 
 #ScriptType
 SQLDMOScript_Aliases = 16384
@@ -81,24 +82,6 @@ SQLDMOScript_TransferDefault = SQLDMOScript_PrimaryObject | SQLDMOScript_Drops \
   | SQLDMOScript_Aliases | SQLDMOScript_IncludeIfNotExists | SQLDMOScript_OwnerQualify \
   | SQLDMOScript_DRIWithNoCheck
 # -- Begin Main Code Execution --
-
-class File
-  unless defined? File.is_cygwin
-  def self.is_cygwin?
-    RUBY_PLATFORM.downcase.include?("cygwin")
-  end
-  end
-
-  unless defined? File.expand_path2
-  def self.expand_path2(path)
-    path = expand_path(path)
-    return path if !is_cygwin?
-    # конвертируем в путь Windows
-    a = `cygpath -w #{path}`.chomp
-    return a
-  end
-  end
-end
 
 class FileReader
   def self.ruby18?
