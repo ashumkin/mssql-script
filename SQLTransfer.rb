@@ -2,8 +2,7 @@
 # vim: set shiftwidth=2 tabstop=2 expandtab:
 # encoding: Windows-1251
 
-require 'optparse'
-require 'ostruct'
+require File.expand_path('../ConnectionOptions', __FILE__)
 
 #ScriptType
 SQLDMOScript_Aliases = 16384
@@ -116,62 +115,30 @@ class FileReader
   end
 end
 
-# command line options parser class
-class TScripterCmdLine < OptionParser
-  attr_reader :options, :debug, :verbose, :concat, :run,
-    :getVersion, :incVersion, :decVersion
+module SQL
 
-  def initialize(args)
-    super()
-    @debug = false
-    @verbose = true
+# command line options parser class
+class TScripterCmdLine < TConnectionCmdLine
+  attr_reader :concat, :run, :getVersion, :incVersion, :decVersion
+
+  def init_options
+    super
     @concat = false
     @run = false
     @getVersion = false
     @incVersion =  false
     @decVersion = false
     @level = -1
-    @options = OpenStruct.new
-    @options.host = \
-    @options.db = \
-    @options.user = \
-    @options.pass = \
     @options.output = \
     @options.list = \
     @options.dep_list = \
     @options.db_version_file = \
-    @options.file = ""
+    @options.file = ''
     @options.objects = []
-
-    separator ""
-    separator "Options:"
-
-    init
-    parse!(args)
-    validate
   end
 
   def objects
     @options.objects
-  end
-
-  def log(level, msg)
-    if level >= @level
-      $stderr.puts msg
-    end
-  end
-
-  def indicate
-    return [@options.host, ".", @options.db, "@", getUser()].join
-  end
-
-  def getConnectionStr
-    if @options.user.empty?
-      s = "Trusted_Connection=Yes"
-    else
-      s = "UID=%s;PWD=%s" % [@options.user, @options.pass]
-    end
-    s = "Provider=SQLOLEDB;Data Source=%s;Initial Catalog=%s;%s" % [@options.host, @options.db, s]
   end
 
   def initObjSQL(objSQL)
@@ -180,22 +147,8 @@ class TScripterCmdLine < OptionParser
     objSQL.Password = @options.pass
   end
 
-private
   def init
-    on("-H", "--host HOST",
-      "Hostname") do |h|
-      @options.host = h
-    end
-
-    on("-d", "--database DATABASE",
-        "Database name") do |db|
-      @options.db = db
-    end
-
-    on("-u", "--user USER:PASS",
-        "Username:password") do |user|
-      @options.user = user
-    end
+    super
 
     on("-o", "--output DIR",
         "Output directory") do |dir|
@@ -245,42 +198,15 @@ private
       @decVersion = file == 'minus'
     end
 
-    on("-q", "--quiet",
-        "Quiet mode") do
-      @verbose = false
-    end
-
-    on("-D", "--debug",
-        "Debug mode") do
-      @debug = true
-      @verbose = true
-    end
-
     on("-O", "--objects [<objects-list>]",
         "Objects list") do |objs|
       @options.objects += objs.split(/;|,/)
     end
 
-    # No argument, shows at tail.  This will print an options summary.
-    # Try it and see!
-    on_tail("-h", "--help", "Show this message") do
-      $stderr.puts help
-      exit
-    end
-  end  # parseargs()
+  end  # init
 
   def validate
-    @options.host = 'localhost' if @options.host.empty?
-    if @options.db.empty?
-      $stderr.puts 'DB is not defined' if @options.db.empty?
-      $stderr.puts help
-      exit
-    end
-
-    @options.user = @options.user.to_s
-    a = @options.user.split(":")
-    @options.user = a[0].to_s
-    @options.pass = a[1].to_s
+    super
 
     @options.output = "DBScripts" if @options.output.empty?
     @options.output = File.expand_path2(@options.output)
@@ -296,10 +222,9 @@ private
     @options.db_version_file = File.expand_path(@options.db_version_file)
   end
 
-  def getUser
-    return @options.user.empty? ? "trusted" : @options.user
-  end
 end  # class TScripterCmdLine
+
+end # module SQL
 
 class FakeDBObject
   def initialize(name)
@@ -405,13 +330,9 @@ class TScripter < TObject
 
   def getDBVersion
     initCOM
-    if @cmdLine.verbose
-      $stderr.puts @cmdLine.indicate
-      $stderr.puts "Getting version..."
-    end
-    if @cmdLine.debug
-      $stderr.puts @cmdLine.getConnectionStr
-    end
+    @cmdLine.log(Log::INFO, @cmdLine.indicate)
+    @cmdLine.log(Log::INFO, 'Getting version...')
+    @cmdLine.log(Log::INFO, @cmdLine.getConnectionStr)
     objConnection = WIN32OLE.new("ADODB.Connection")
     objRecordSet = WIN32OLE.new("ADODB.Recordset")
     objConnection.Open(@cmdLine.getConnectionStr)
@@ -425,9 +346,7 @@ class TScripter < TObject
     if not objRecordSet.Eof
       version = objRecordSet.Fields(0).Value
     end
-    if @cmdLine.verbose
-      $stderr.puts version
-    end
+    @cmdLine.log(Log::INFO, version)
     saveDBVersion(version)
     return version
   end
@@ -435,10 +354,8 @@ class TScripter < TObject
 private
   def dorun
     initCOM
-    if @cmdLine.verbose
-      $stderr.puts "Scripting..."
-      $stderr.puts @cmdLine.indicate
-    end
+    @cmdLine.log(Log::INFO, 'Scripting...')
+    @cmdLine.log(Log::INFO, @cmdLine.indicate)
     @cmdLine.initObjSQL(@objSQL)
     init
     connect
@@ -510,7 +427,7 @@ private
   def connect
     @objSQL.Connect @cmdLine.options.host
     @objDB = @objSQL.Databases(@cmdLine.options.db)
-    $stderr.puts 'Connected to %s.%s (ID=%d)' % [@cmdLine.options.host, @objDB.Name, @objDB.ID]
+    @cmdLine.log(Log::INFO, 'Connected to %s.%s (ID=%d)' % [@cmdLine.options.host, @objDB.Name, @objDB.ID])
   end
 
   def init
@@ -524,10 +441,8 @@ private
 
     @objTransfer.ScriptType = scriptParams
     @objTransfer.Script2Type = script2Params
-    if @cmdLine.debug
-      $stderr.puts "ScriptType=#{@objTransfer.ScriptType.to_s}"
-      $stderr.puts "Script2Type=#{@objTransfer.Script2Type.to_s}"
-    end
+    @cmdLine.log(Log::DEBUG, "ScriptType=#{@objTransfer.ScriptType.to_s}")
+    @cmdLine.log(Log::DEBUG, "Script2Type=#{@objTransfer.Script2Type.to_s}")
 
     @objTransfer.IncludeDependencies = false
     @objTransfer.IncludeLogins = false
@@ -539,9 +454,9 @@ private
     return false if obj.SystemObject
     @objTransfer.AddObjectByName(obj.Name, objType)
     # indicate progress
-    $stderr.puts obj.Name if @cmdLine.verbose
+    @cmdLine.log(Log::INFO, obj.Name)
     name = "%s.%s.sql" % [obj.Name, suffix]
-    $stderr.puts dir + '/' + name if @cmdLine.verbose
+    @cmdLine.log(Log::INFO, dir + '/' + name)
     @objDB.ScriptTransfer(@objTransfer, SQLDMOXfrFile_SingleSummaryFile,
         dir + '/' + name)
     # script triggers for tables
@@ -781,7 +696,7 @@ end
 
 # if run directly (not a module)
 if __FILE__ == $0
-  cmdLine = TScripterCmdLine.new(ARGV.dup)
+  cmdLine = SQL::TScripterCmdLine.new(ARGV.dup)
   Scripter = TScripter.new(cmdLine)
   Scripter.run
 end

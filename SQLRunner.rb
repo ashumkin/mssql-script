@@ -2,16 +2,8 @@
 # vim: set shiftwidth=2 tabstop=2 expandtab:
 # encoding: utf-8
 
-require 'optparse'
-require 'ostruct'
+require File.expand_path('../ConnectionOptions', __FILE__)
 require 'stringio'
-
-module Log
-  SILENT = 0
-  INFO = 1
-  WARN = 2
-  DEBUG = 3
-end
 
 module ADO
   ADStateClosed = 0 # The object is closed
@@ -22,50 +14,23 @@ module ADO
 end
 
 # command line options parser class
-class SQLTCmdLine < OptionParser
-  attr_reader :options, :debug, :verbose, :concat, :run,
-    :getVersion, :incVersion, :decVersion
+module SQL
 
-  def initialize(args)
-    super()
-    @options = OpenStruct.new
-    @options.host = \
-    @options.db = \
-    @options.user = \
-    @options.pass = \
+class TCmdLine < TConnectionCmdLine
+  attr_reader :run
+
+  def init_options
+    super
     @options.output = \
     @options.query = \
     @options.file = ""
     @options.rollback = false
     @options.time = false
-    @options.level = Log::INFO
-    @options.log = nil
     @options.inputs = []
-
-    separator ""
-    separator "Options:"
-
-    init
-    parse!(args)
-    validate
   end
 
-private
   def init
-    on("-H", "--host HOST",
-      "Hostname") do |h|
-      @options.host = h
-    end
-
-    on("-d", "--database DATABASE",
-        "Database name") do |db|
-      @options.db = db
-    end
-
-    on("-u", "--user USER:PASS",
-        "Username:password") do |user|
-      @options.user, @options.pass = user.split(':')
-    end
+    super
 
     on("-o", "--output DIR",
         "Output directory") do |dir|
@@ -93,36 +58,16 @@ private
       @options.time = true
     end
 
-    on("-q", "--quiet",
-        "Quiet mode") do
-      @level = Log::SILENT
-    end
-
     on("-Q", "--query [QUERY]",
         "Query string") do |q|
       @options.query = q
       @options.inputs << StringIO.new(q)
     end
 
-    on("-D", "--debug",
-        "Debug mode") do
-      @options.level = Log::DEBUG
-    end
-
-    # No argument, shows at tail.  This will print an options summary.
-    # Try it and see!
-    on_tail("-h", "--help", "Show this message") do
-      puts self
-      exit
-    end
-  end  # parseargs()
-
-  def validate
-    @options.host = 'localhost' if @options.host.empty?
-    @options.db = 'test' if @options.db.empty?
-  end
-
+  end  # init
 end  # class SQLTCmdLine
+
+end # module SQL
 
 class TScriptRunner
   attr_accessor :level, :error
@@ -149,22 +94,12 @@ class TScriptRunner
     end
   end
 
-  def getUser
-    return @opt.options.user.to_s.empty? ? "trusted" : @opt.options.user
-  end
-
   def indicate
-    return [@opt.options.host, ".", @opt.options.db, "@", getUser()].join
+    return @opt.indicate
   end
 
   def getConnectionStr
-    if @opt.options.user.to_s.empty?
-      s = "Trusted_Connection=Yes"
-    else
-      s = "UID=%s;PWD=%s;" % [@opt.options.user, @opt.options.pass]
-    end
-    s = "Provider=SQLOLEDB;Data Source=%s;Initial Catalog=%s;%s" % \
-      [@opt.options.host, @opt.options.db, s]
+    return @opt.getConnectionStr
   end
 
   def run(file = nil)
@@ -283,7 +218,7 @@ end # class TScriptRunner
 
 # if run directly (not a module)
 if __FILE__ == $0
-  cmdLine = SQLTCmdLine.new(ARGV.dup)
+  cmdLine = SQL::TCmdLine.new(ARGV.dup)
   ScriptRunner = TScriptRunner.new(cmdLine)
   exit ScriptRunner.run()
 end
