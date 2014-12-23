@@ -170,6 +170,7 @@ class Restorer
     log(Log::DEBUG, sql)
     @objConnection.CommandTimeout = @cmdLine.options.timeout
     @objConnection.Execute(sql)
+    log(Log::WARN, 'DONE')
   end
 end # class TRestorer
 
