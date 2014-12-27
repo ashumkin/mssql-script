@@ -1,23 +1,10 @@
 #!/usr/bin/env ruby
 
-require File.expand_path('../ConnectionOptions', __FILE__)
-require File.expand_path('../File.rb', __FILE__)
+require 'mssql/ado/constants'
+require 'mssql/script/connection_options'
+require 'mssql/helpers/file'
 
-module SQL
-
-module ADO
-  ADStateClosed = 0 # The object is closed
-  ADStateOpen =1  # The object is open
-  ADStateConnecting = 2 # The object is connecting
-  ADStateExecuting = 4  # The object is executing a command
-  ADStateFetching = 8 # The rows of the object are being retrieved
-
-  ADOpenForwardOnly = 0
-  ADOpenKeyset = 1
-  ADOpenDynamic = 2
-  ADOpenStatic = 3
-end
-
+module MSSQL
 
 # command line options parser class
 class RestorerOptions < TConnectionCmdLine
@@ -174,11 +161,4 @@ class Restorer
   end
 end # class TRestorer
 
-end # module SQL
-
-# if run directly (not a module)
-if __FILE__ == $0
-  cmdLine = SQL::RestorerOptions.new(ARGV.dup)
-  restorer = SQL::Restorer.new(cmdLine)
-  restorer.run
-end
+end # module MSSQL

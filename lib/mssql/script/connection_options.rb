@@ -1,3 +1,6 @@
+# encoding: utf-8
+# vim: set shiftwidth=2 tabstop=2 expandtab:
+
 require 'optparse'
 require 'ostruct'
 
@@ -8,7 +11,7 @@ module Log
   DEBUG = 3
 end
 
-module SQL
+module MSSQL
 
 # command line options parser class
 class TConnectionCmdLine < OptionParser
@@ -103,4 +106,4 @@ class TConnectionCmdLine < OptionParser
   end
 end  # class TConnectionCmdLine
 
-end # module SQL
+end # module MSSQL

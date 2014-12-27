@@ -2,21 +2,16 @@
 # vim: set shiftwidth=2 tabstop=2 expandtab:
 # encoding: utf-8
 
-require File.expand_path('../ConnectionOptions', __FILE__)
+require 'mssql/ado/constants'
+require 'mssql/script/connection_options'
 require 'stringio'
 
-module ADO
-  ADStateClosed = 0 # The object is closed
-  ADStateOpen =1  # The object is open
-  ADStateConnecting = 2 # The object is connecting
-  ADStateExecuting = 4  # The object is executing a command
-  ADStateFetching = 8 # The rows of the object are being retrieved
-end
-
 # command line options parser class
-module SQL
+module MSSQL
 
-class TCmdLine < TConnectionCmdLine
+module Script
+
+class RunnerOptions < TConnectionCmdLine
   attr_reader :run
 
   def init_options
@@ -65,11 +60,9 @@ class TCmdLine < TConnectionCmdLine
     end
 
   end  # init
-end  # class SQLTCmdLine
+end  # class RunnerOptions
 
-end # module SQL
-
-class TScriptRunner
+class Runner
   attr_accessor :level, :error
 
   def initialize(opt)
@@ -216,9 +209,6 @@ class TScriptRunner
   end;
 end # class TScriptRunner
 
-# if run directly (not a module)
-if __FILE__ == $0
-  cmdLine = SQL::TCmdLine.new(ARGV.dup)
-  ScriptRunner = TScriptRunner.new(cmdLine)
-  exit ScriptRunner.run()
-end
+end # module Script
+
+end # module MSSQL

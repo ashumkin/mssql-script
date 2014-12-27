@@ -2,106 +2,19 @@
 # vim: set shiftwidth=2 tabstop=2 expandtab:
 # encoding: Windows-1251
 
-require File.expand_path('../ConnectionOptions', __FILE__)
-require File.expand_path('../File.rb', __FILE__)
+require 'mssql/ado/constants'
+require 'mssql/sqldmo/constants'
+require 'mssql/script/connection_options'
+require 'mssql/helpers/filereader'
 
-#ScriptType
-SQLDMOScript_Aliases = 16384
-SQLDMOScript_AppendToFile=256
-SQLDMOScript_Bindings=128
-SQLDMOScript_ClusteredIndexes=8
-SQLDMOScript_DatabasePermissions = 32
-SQLDMOScript_Default=4
-SQLDMOScript_DRI_All=532676608
-SQLDMOScript_DRI_AllConstraints=520093696
-SQLDMOScript_DRI_AllKeys=469762048
-SQLDMOScript_DRI_Checks=16777216
-SQLDMOScript_DRI_Clustered=8388608
-SQLDMOScript_DRI_Defaults=33554432
-SQLDMOScript_DRI_ForeignKeys=134217728
-SQLDMOScript_DRI_NonClustered=4194304
-SQLDMOScript_DRI_PrimaryKey=268435456
-SQLDMOScript_DRI_UniqueKeys=67108864
-SQLDMOScript_DRIIndexes=65536
-SQLDMOScript_DRIWithNoCheck=536870912
-SQLDMOScript_Drops=1
-SQLDMOScript_IncludeHeaders=131072
-SQLDMOScript_IncludeIfNotExists=4096
-SQLDMOScript_Indexes=73736
-SQLDMOScript_NoCommandTerm=32768
-SQLDMOScript_NoDRI=512
-SQLDMOScript_NoIdentity=1073741824
-SQLDMOScript_NonClusteredIndexes=8192
-SQLDMOScript_ObjectPermissions=2
-SQLDMOScript_OwnerQualify=262144
-SQLDMOScript_PrimaryObject=4
-SQLDMOScript_TimestampToBinary=524288
-SQLDMOScript_ToFileOnly=64
-SQLDMOScript_Triggers=16
-SQLDMOScript_UDDTsToBaseType=1024
-SQLDMOScript_UseQuotedIdentifiers=-1
-SQLDMOScript_Permissions = SQLDMOScript_DatabasePermissions or SQLDMOScript_ObjectPermissions
-
-#ScriptType2
-SQLDMOScript2_70Only=16777216
-SQLDMOScript2_AgentAlertJob=2048
-SQLDMOScript2_AgentNotify=1024
-SQLDMOScript2_AnsiFile=2
-SQLDMOScript2_AnsiPadding=1
-SQLDMOScript2_Default=0
-SQLDMOScript2_EncryptPWD=128
-SQLDMOScript2_ExtendedOnly=67108864
-SQLDMOScript2_ExtendedProperty=4194304
-SQLDMOScript2_FullTextCat=2097152
-SQLDMOScript2_FullTextIndex=524288
-SQLDMOScript2_JobDisable=33554432
-SQLDMOScript2_LoginSID=8192
-SQLDMOScript2_NoCollation=8388608
-SQLDMOScript2_NoFG=16
-SQLDMOScript2_NoWhatIfIndexes=512
-SQLDMOScript2_UnicodeFile=4
-
-# !!! ERROR in MSDN !!!
-# SQLDMOObj_UserDefinedDatatype & SQLDMOObj_UserDefinedFunction values are reversed
-SQLDMOObj_UserDefinedDatatype = 1
-SQLDMOObj_UserDefinedFunction = 4096
-SQLDMOObj_View = 4
-SQLDMOObj_UserTable = 8
-SQLDMOObj_StoredProcedure = 16
-SQLDMOObj_Trigger = 256
-SQLDMOObj_AllDatabaseUserObjects = 4605
-
-SQLDMOXfrFile_SummaryFiles = 1
-SQLDMOXfrFile_SingleFilePerObject = 4
-SQLDMOXfrFile_SingleSummaryFile = 8
-SQLDMOXfrFile_Default = SQLDMOXfrFile_SummaryFiles
-
-SQLDMOScript_TransferDefault = SQLDMOScript_PrimaryObject | SQLDMOScript_Drops \
-  | SQLDMOScript_Bindings | SQLDMOScript_ClusteredIndexes | SQLDMOScript_NonClusteredIndexes \
-  | SQLDMOScript_Triggers | SQLDMOScript_ToFileOnly | SQLDMOScript_Permissions | SQLDMOScript_IncludeHeaders \
-  | SQLDMOScript_Aliases | SQLDMOScript_IncludeIfNotExists | SQLDMOScript_OwnerQualify \
-  | SQLDMOScript_DRIWithNoCheck
 # -- Begin Main Code Execution --
 
-class FileReader
-  def self.ruby18?
-    return RUBY_VERSION =~ /^1\.8/
-  end
+module MSSQL
 
-  def self.readlines(file)
-    if ruby18?
-      return IO.readlines(file)
-    else
-      # files of scripts are in Windows-1251
-      return IO.readlines(file, { :encoding => 'Windows-1251' })
-    end
-  end
-end
-
-module SQL
+module Script
 
 # command line options parser class
-class TScripterCmdLine < TConnectionCmdLine
+class TransferOptions < TConnectionCmdLine
   attr_reader :concat, :run, :getVersion, :incVersion, :decVersion
 
   def init_options
@@ -205,9 +118,7 @@ class TScripterCmdLine < TConnectionCmdLine
     @options.db_version_file = File.expand_path(@options.db_version_file)
   end
 
-end  # class TScripterCmdLine
-
-end # module SQL
+end  # class TransferOptions
 
 class FakeDBObject
   def initialize(name)
@@ -254,7 +165,7 @@ class TObject
   end
 end
 
-class TScripter < TObject
+class Transfer < TObject
   def initialize(cmdLine)
     super()
     @cmdLine = cmdLine
@@ -349,13 +260,13 @@ private
       end
     else
       scriptObjects(@objDB.Tables, 'TAB',
-        SQLDMOObj_UserTable, @cmdLine.options.output)
+        SQLDMO::Obj::UserTable, @cmdLine.options.output)
       scriptObjects(@objDB.Views , 'VIW',
-        SQLDMOObj_View, @cmdLine.options.output)
+        SQLDMO::Obj::View, @cmdLine.options.output)
       scriptObjects(@objDB.UserDefinedFunctions  , 'UDF',
-        SQLDMOObj_UserDefinedFunction, @cmdLine.options.output)
+        SQLDMO::Obj::UserDefinedFunction, @cmdLine.options.output)
       scriptObjects(@objDB.StoredProcedures, 'PRC',
-        SQLDMOObj_StoredProcedure, @cmdLine.options.output)
+        SQLDMO::Obj::StoredProcedure, @cmdLine.options.output)
     end
   end
 
@@ -378,15 +289,15 @@ private
     p ['detectTypeByName: ', name, ext] if @cmdLine.debug
     type = case ext
       when 'TAB'
-        SQLDMOObj_UserTable
+        SQLDMO::Obj::UserTable
       when 'VIW'
-        SQLDMOObj_View
+        SQLDMO::Obj::View
       when 'UDF'
-        SQLDMOObj_UserDefinedFunction
+        SQLDMO::Obj::UserDefinedFunction
       when 'TRG'
-        SQLDMOObj_Trigger
+        SQLDMO::Obj::Trigger
       when 'PRC'
-        SQLDMOObj_StoredProcedure
+        SQLDMO::Obj::StoredProcedure
       else
         raise 'Undefined object type ' + fullname
     end
@@ -414,13 +325,13 @@ private
   end
 
   def init
-    scriptParams = SQLDMOScript_TransferDefault \
-      & ~SQLDMOScript_IncludeHeaders \
-      & ~SQLDMOScript_IncludeIfNotExists \
-      & ~SQLDMOScript_Triggers
+    scriptParams = SQLDMO::Script::TransferDefault \
+      & ~SQLDMO::Script::IncludeHeaders \
+      & ~SQLDMO::Script::IncludeIfNotExists \
+      & ~SQLDMO::Script::Triggers
 
-    script2Params = SQLDMOScript2_ExtendedProperty \
-      | SQLDMOScript2_AnsiFile
+    script2Params = SQLDMO::Script2::ExtendedProperty \
+      | SQLDMO::Script2::AnsiFile
 
     @objTransfer.ScriptType = scriptParams
     @objTransfer.Script2Type = script2Params
@@ -440,11 +351,11 @@ private
     @cmdLine.log(Log::INFO, obj.Name)
     name = "%s.%s.sql" % [obj.Name, suffix]
     @cmdLine.log(Log::INFO, dir + '/' + name)
-    @objDB.ScriptTransfer(@objTransfer, SQLDMOXfrFile_SingleSummaryFile,
+    @objDB.ScriptTransfer(@objTransfer, SQLDMO::XfrFile::SingleSummaryFile,
         dir + '/' + name)
     # script triggers for tables
-    if objType == SQLDMOObj_UserTable || objType == SQLDMOObj_View
-      scriptObjects(obj.Triggers, 'TRG', SQLDMOObj_Trigger, dir)
+    if objType == SQLDMO::Obj::UserTable || objType == SQLDMO::Obj::View
+      scriptObjects(obj.Triggers, 'TRG', SQLDMO::Obj::Trigger, dir)
     end
     @objList << name
     return true
@@ -455,7 +366,7 @@ private
       scriptObject(obj, suffix, objType, dir)
     end
   end
-end # class TScripter
+end # class Transfer
 
 class TDBObjects < TObject
   def initialize
@@ -550,7 +461,7 @@ class TDBObjects < TObject
     deps = TDependencies.new(dep_file)
     @objects.sort! { |a, b| deps.sort(a, b) }
   end
-end
+end # class TDBObjects
 
 class TDBObject
   attr_reader :name, :type, :deps, :primary, :secondary, :end, :ext
@@ -604,7 +515,7 @@ class TDBObject
       @parent.addError(@name, "#{@name} is corrupted?!")
     end
   end
-end
+end # class TDBObject
 
 class TDependency
   attr_reader :name, :_type
@@ -618,7 +529,7 @@ class TDependency
     line.chomp!
     return !(line =~ /^\s*#/ || line.empty?)
   end
-end
+end # class TDependency
 
 class TDependencies
   def initialize(file)
@@ -675,11 +586,8 @@ class TDependencies
     end
     return r
   end
-end
+end # class TDependencies
 
-# if run directly (not a module)
-if __FILE__ == $0
-  cmdLine = SQL::TScripterCmdLine.new(ARGV.dup)
-  Scripter = TScripter.new(cmdLine)
-  Scripter.run
-end
+end # module Script
+
+end # module MSSQL
