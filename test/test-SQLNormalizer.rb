@@ -24,6 +24,16 @@ end
 module MSSQL
   module Script
 
+    # define a filter to replace datetime2 to datetime2(3)
+    class SQLFile
+      def filter(lines)
+        lines.map! do |line|
+          line.gsub!(/\[?datetime2\]?(?![\(\]])/, '\0(3)')
+          line
+        end
+      end
+    end
+
     class TestNormalizer < Test::Unit::TestCase
     private
       def assert_equal_text(expected, actual, file)

@@ -9,7 +9,11 @@ CREATE TABLE [dbo].[a2_Addition] (
 	[ID_T] [bigint] NOT NULL ,
 	[BeeSumBilling] [numeric](14, 2) NULL ,
 	[BeeSumAdd] [numeric](14, 2) NULL ,
-	[BeeSumAll] [numeric](14, 2) NULL  
+	[BeeSumAll] [numeric](14, 2) NULL ,
+	[Date4] datetime2(4) NOT NULL,
+	[Date21] datetime2 NULL,
+	[Date22] [datetime2] NULL ,
+	[Date23] [datetime2](3) NULL 
 ) ON [PRIMARY]
 
 

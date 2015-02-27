@@ -383,12 +383,19 @@ module MSSQL
         end
       end
 
+      def filter(lines)
+        # redefine this method to reach your goals
+        return lines
+      end
+
       def to_s
         r = []
         @elements.each do |el|
           r << el.lines
         end
-        return r.flatten.join
+        # we can filter contents (usually before saving to a file)
+        r = filter(r.flatten)
+        return r.join
       end
 
       def save(output)
