@@ -46,9 +46,8 @@ module MSSQL
           f_name = File.basename(f)
           f = File.expand_path(f_name, @opts.options.output)
           f_expected = File.expand_path(f_name, File.expand_path('../resources/expected/', __FILE__))
-          assert_equal(File.size(f_expected), File.size(f), 'At least file sizes must be equal!')
-          test_text_output = FileReader.readlines(f).map!{ |line| line.chomp }
-          test_text_expected = FileReader.readlines(f_expected).map!{ |line| line.chomp }
+          test_text_output = FileReader.readlines(f)
+          test_text_expected = FileReader.readlines(f_expected)
           assert_equal_text(test_text_expected, test_text_output, f_name)
         end
         assert_not_equal(0, c, 'Source files count = 0')
