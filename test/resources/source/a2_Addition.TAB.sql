@@ -4,14 +4,16 @@ drop table [dbo].[a2_Addition]
 
 GO
 
-CREATE TABLE [dbo].[a2_Addition] (
+CREATE table [dbo].[a2_Addition] (
 	[ID_C] [bigint] NOT NULL ,   
 	[ID_T] [bigint] NOT NULL ,
 	[BeeSumBilling] [numeric](14, 2) NULL ,
 	[BeeSumAdd] [numeric](14, 2) NULL ,
 	[BeeSumAll] [numeric](14, 2) NULL ,
 	[Date4] datetime2(4) NOT NULL,
+--	comment about datetime2
 	[Date21] datetime2 NULL,
+--	another comment about datetime2 type
 	[Date22] [datetime2] NULL ,
 	[Date23] [datetime2](3) NULL 
 ) ON [PRIMARY]

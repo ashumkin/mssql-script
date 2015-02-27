@@ -20,6 +20,7 @@ CREATE PROCEDURE dbo.AddTimeServices
 )
 --ENCRYPTION--
 AS
+    -- a word about datetime2 type
     DELETE FROM dbo.b_TimeServices
 	WHERE ID_S = @ID_S
 	

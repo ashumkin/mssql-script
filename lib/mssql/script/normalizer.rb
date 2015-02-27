@@ -213,6 +213,16 @@ module MSSQL
       end
     end
 
+    class Table < OneLineElement
+      def type
+        return 'table definition'
+      end
+
+      def mainRE
+        return /^CREATE TABLE.+/i
+      end
+    end
+
     class MultiStringElement < OneLineElement
       def nameRE
         raise 'Override'
@@ -326,6 +336,13 @@ module MSSQL
             hunk = []
           end
         end
+      end
+
+      def is_type?(type)
+        @elements.each do |el|
+          return true if el.kind_of?(type)
+        end
+        return false
       end
 
       def sort

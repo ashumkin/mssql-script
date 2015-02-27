@@ -27,8 +27,10 @@ module MSSQL
     # define a filter to replace datetime2 to datetime2(3)
     class SQLFile
       def filter(lines)
+        # filter Tables only
+        return lines unless is_type?(Table)
         lines.map! do |line|
-          line.gsub!(/\[?datetime2\]?(?![\(\]])/, '\0(3)')
+          line.gsub!(/(?!--).+\[?datetime2\]?(?![\(\]])/, '\0(3)')
           line
         end
       end
