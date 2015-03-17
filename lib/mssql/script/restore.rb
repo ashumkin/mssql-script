@@ -24,11 +24,13 @@ class RestorerOptions < TConnectionCmdLine
   end
   def validate
     super
-    if @options.restore_as.empty?
-      validate_error('Restore DB name is not defined')
-    end
-    if @options.restore_path.empty?
-      validate_error('Restore path is not defined')
+    unless @options.list_only
+      if @options.restore_as.empty?
+        validate_error('Restore DB name is not defined')
+      end
+      if @options.restore_path.empty?
+        validate_error('Restore path is not defined')
+      end
     end
     if @options.file.empty?
       validate_error( 'Input file is not defined')
