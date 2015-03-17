@@ -12,7 +12,7 @@ CREATE table [dbo].[a2_Addition] (
 --	comment about datetime2
 	[Date21] datetime2(3) NULL,
 --	another comment about datetime2 type
-	[Date22] [datetime2](3) NULL ,
+	[Date22] [datetime2](3) NULL , -- comment after description
 	[Date23] [datetime2](3) NULL
 ) ON [PRIMARY]
 GO

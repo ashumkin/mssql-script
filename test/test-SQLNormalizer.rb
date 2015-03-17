@@ -29,8 +29,12 @@ module MSSQL
       def filter(lines)
         # filter Tables only
         return lines unless is_type?(Table)
+        regex = /\[?datetime2\]?(?![\(\]])/
         lines.map! do |line|
-          line.gsub!(/(?!--).+\[?datetime2\]?(?![\(\]])/, '\0(3)')
+          comments = line.index(/--/)
+          if comments.nil? || line.index(regex).to_i < comments
+            line.gsub!(regex, '\0(3)')
+          end
           line
         end
       end
