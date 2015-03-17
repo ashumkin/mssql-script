@@ -1,0 +1,22 @@
+# File format:
+# <objectname>[:<substituted_object_type>]
+#   <substituted_object_type> is used for UDF in Views
+#   as objects are scripted in an order
+#   "TAB", "VIW", "UDF", "PRC", "TRG"
+
+# a2_Addition "depends on" b_Contractors
+# this means b_Contractors must be created first
+b_Contractors
+a2_Addition
+# this makes b_Contractors be the first in a list
+# but b_ContractorsAddInfo depends on b_Contractors
+b_ContractorsAddInfo
+
+# Views are scripted before functions
+# but some views may depend on functions
+# So, we can "substitute" type of a function
+# to script it before a view that uses it
+ScalarFunction:VIW
+ViewUsesTable
+ViewUsesFunction
+

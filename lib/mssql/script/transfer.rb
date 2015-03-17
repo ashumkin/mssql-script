@@ -5,6 +5,7 @@
 require 'mssql/ado/constants'
 require 'mssql/sqldmo/constants'
 require 'mssql/script/connection_options'
+require 'mssql/helpers/file'
 require 'mssql/helpers/filereader'
 
 # -- Begin Main Code Execution --
@@ -72,7 +73,7 @@ class TransferOptions < TConnectionCmdLine
       @getVersion = true
     end
 
-    on("-C", "--concatenate [FILE]",
+    on("-C", "--concatenate",
         "Concatenate all objects to one script according to order and dependencies in <DEP_FILELIST>") do |file|
       @concat = true
     end
@@ -102,7 +103,8 @@ class TransferOptions < TConnectionCmdLine
   end  # init
 
   def validate
-    super
+    # do not validate DB options if we just want to concatenate scripts
+    super unless @concat
 
     @options.output = "DBScripts" if @options.output.empty?
     @options.output = File.expand_path2(@options.output)
@@ -431,8 +433,8 @@ class TDBObjects < TObject
   # read object files
   def read(dir, list_file, verbose)
     list = FileReader.readlines(list_file)
-    # remove all comments
-    list.delete_if { |s| /^\s*#/.match(s) }
+    # remove all comments and empty lines
+    list.delete_if { |s| /(^\s*#|^\s*$)/.match(s) }
     # chomp all strings
     list.map! { |s| s.chomp }
     files = Dir.entries(dir)
