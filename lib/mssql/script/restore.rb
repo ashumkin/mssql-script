@@ -114,7 +114,11 @@ class Restorer
     while !recordset.EOF
       a = []
       fields.each do |field|
-        a << recordset.Fields.Item(field).Value
+        begin
+          a << recordset.Fields.Item(field).Value
+        rescue Exception => e
+          puts "#{field} #{e.message}"
+        end
       end
       yield recordset if block_given?
       log(level, a.join(' '))
@@ -132,7 +136,7 @@ class Restorer
 
     @objRecordSet.Open("RESTORE HEADERONLY FROM DISK = N'#{@cmdLine.options.file}' WITH NOUNLOAD", @objConnection, -1)
     @file_position = 0
-    print_recordset(@objRecordSet, ['Position', 'DatabaseVersion', 'SoftwareVendorId', 'CompatibilityLevel', 'SoftwareVersionMajor', 'SoftwareVersionMinor', 'SoftwareVersionBuild'], Log::WARN) do |rs|
+    print_recordset(@objRecordSet, ['Position', 'DatabaseVersion', 'SoftwareVendorId', 'CompatibilityLevel', 'SoftwareVersionMajor', 'SoftwareVersionMinor', 'SoftwareVersionBuild', 'BackupFinishDate'], Log::WARN) do |rs|
       @file_position = rs.Fields.Item('Position').Value if rs.Fields.Item('Position').Value > @file_position
     end
     useRecordSet(@objRecordSet)
