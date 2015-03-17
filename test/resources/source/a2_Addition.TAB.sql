@@ -30,5 +30,5 @@ GO
  CREATE  INDEX [ind_a2_Addition_ID_C] ON [dbo].[a2_Addition]([ID_C]) ON [PRIMARY]
 GO
 
-exec sp_addextendedproperty N'MS_Description', N'Кэш для b_Addition при расчетах', N'user', N'dbo', N'table', N'a2_Addition'
+exec sp_addextendedproperty N'MS_Description', N'Cache of b_Addition while processing', N'user', N'dbo', N'table', N'a2_Addition'
 GO

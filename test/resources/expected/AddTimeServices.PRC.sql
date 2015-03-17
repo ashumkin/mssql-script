@@ -11,8 +11,7 @@ GO
 CREATE PROCEDURE dbo.AddTimeServices
 (
 /*
-    процедура добавления календаря действия компенсации
-	--вместо Ins_TimeServices
+    procedure description
 */	
     @ID_S bigint,
     @TimeA varchar(8),

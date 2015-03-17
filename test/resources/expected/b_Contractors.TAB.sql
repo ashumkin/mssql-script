@@ -64,12 +64,12 @@ GO
  CREATE  INDEX [ind_b_Contractors_ParentID] ON [dbo].[b_Contractors]([ParentID]) ON [PRIMARY]
 GO
 
-exec sp_addextendedproperty N'MS_Description', N'Хранилище дерева абонентов', N'user', N'dbo', N'table', N'b_Contractors'
+exec sp_addextendedproperty N'MS_Description', N'Contractors list', N'user', N'dbo', N'table', N'b_Contractors'
 GO
 
 exec sp_addextendedproperty N'MS_Description', null, N'user', N'dbo', N'table', N'b_Contractors', N'column', N'DopInfo'
 GO
 
-exec sp_addextendedproperty N'MS_Description', N'Признак удаленного. 1 - да, 0 - нет', N'user', N'dbo', N'table', N'b_Contractors', N'column', N'Removed'
+exec sp_addextendedproperty N'MS_Description', N'"Removed" flag. 1 - YES, 0 - NO', N'user', N'dbo', N'table', N'b_Contractors', N'column', N'Removed'
 GO
 

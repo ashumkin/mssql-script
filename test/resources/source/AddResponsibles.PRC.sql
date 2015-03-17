@@ -9,8 +9,7 @@ CREATE PROCEDURE dbo.AddResponsibles
 (
     @ID_C int
 /*
-    процедура заносит список ответственных для группы @ID_C 
-	на основе списка из временной таблицы aTmpID_C
+    procedure description
 */	
 )
 --ENCRYPTION--
