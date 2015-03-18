@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ashumkin/mssql-script.svg?branch=master)](https://travis-ci.org/ashumkin/mssql-script)
+
 # Mssql::Script
 
 TODO: Write a gem description
