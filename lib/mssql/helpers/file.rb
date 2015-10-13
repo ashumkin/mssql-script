@@ -10,7 +10,7 @@ class File
     path = expand_path(path)
     return path if !is_cygwin?
     # convert to Windows path
-    a = `cygpath -w #{path}`.chomp
+    a = `cygpath -w "#{path}"`.chomp
     return a
   end
   end
