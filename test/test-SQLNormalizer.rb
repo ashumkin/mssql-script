@@ -52,19 +52,34 @@ module MSSQL
         assert_equal(true, diff.diffs.empty?, file + ': ' + diff_text.string)
       end
 
-      def _test_files(dir, mask)
-        @args << '--mask' << mask
+      def clear_output_dir(dir)
+        # clear output
+        filelist = FileList[dir + '/*']
+        filelist.each do |f|
+          FileUtils.rm(f)
+        end
+      end
+
+      def _test_files(dir, mask, filelist = nil)
+        @args << '--mask' << (filelist || mask)
         @opts = NormalizerOptions.new(@args)
         @sqlNormalizer = Normalizer.new(@opts)
+
+        clear_output_dir(@opts.options.output)
         @sqlNormalizer.run
         c = 0
         filelist = FileList[File.expand_path('../resources/source/' + mask, __FILE__)]
         filelist.each do |f|
           c += 1
           f_name = File.basename(f)
-          f = File.expand_path(f_name, @opts.options.output)
+          f_actual = File.expand_path(f_name, @opts.options.output)
+          # for particular files
+          # source is untouched
+          if filelist
+            FileUtils.cp(f, f_actual) unless File.exists?(f_actual)
+          end
           f_expected = File.expand_path(f_name, File.expand_path("../resources/expected/#{dir}/" , __FILE__))
-          test_text_output = FileReader.readlines(f)
+          test_text_output = FileReader.readlines(f_actual)
           test_text_expected = FileReader.readlines(f_expected)
           assert_equal_text(test_text_expected, test_text_output, f_name)
         end
@@ -83,9 +98,18 @@ module MSSQL
         _test_files('all', '*.TAB.sql')
       end
 
+      def test_tables_particular_files
+        _test_files('particular',  '*.TAB.sql', 'a2_Addition.TAB.sql,b_ContractorsAddInfo.TAB.sql')
+      end
+
       def test_procedures
         _test_files('all', '*.PRC.sql')
       end
+
+      def test_procedures_particular_files
+        _test_files('particular',  '*.PRC.sql', 'AddResponsibles.PRC.sql')
+      end
+
     end
 
   end # module Script

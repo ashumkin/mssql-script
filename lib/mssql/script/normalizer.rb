@@ -435,7 +435,11 @@ module MSSQL
 
       def run
         if File.directory?(@opt.file)
-          d = Dir[@opt.file + '/' + @opt.mask]
+          masks = @opt.mask.split(',')
+          masks.map! do |m|
+            @opt.file + '/' + m
+          end
+          d = Dir[*masks]
         else
           d = [@opt.file]
         end
