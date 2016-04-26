@@ -52,14 +52,14 @@ module MSSQL
         assert_equal(true, diff.diffs.empty?, file + ': ' + diff_text.string)
       end
 
-      def _test_files(mask)
+      def _test_files(dir, mask)
         @sqlNormalizer.run
         c = 0
         FileList[File.expand_path('../resources/source/' + mask, __FILE__)].each do |f|
           c += 1
           f_name = File.basename(f)
           f = File.expand_path(f_name, @opts.options.output)
-          f_expected = File.expand_path(f_name, File.expand_path('../resources/expected/', __FILE__))
+          f_expected = File.expand_path(f_name, File.expand_path("../resources/expected/#{dir}/" , __FILE__))
           test_text_output = FileReader.readlines(f)
           test_text_expected = FileReader.readlines(f_expected)
           assert_equal_text(test_text_expected, test_text_output, f_name)
@@ -79,11 +79,11 @@ module MSSQL
       end
 
       def test_tables
-        _test_files('*.TAB.sql')
+        _test_files('all', '*.TAB.sql')
       end
 
       def test_procedures
-        _test_files('*.PRC.sql')
+        _test_files('all', '*.PRC.sql')
       end
     end
 

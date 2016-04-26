@@ -68,7 +68,7 @@ module MSSQL
 
       def test_concatenate
         @sqlTransfer.run
-        f_expected = File.expand_path('../resources/expected/script.sql', __FILE__)
+        f_expected = File.expand_path('../resources/expected/all/script.sql', __FILE__)
         test_text_output = FileReader.readlines(@output)
         test_text_expected = FileReader.readlines(f_expected)
         assert_equal_text(test_text_expected, test_text_output, 'script.sql')
