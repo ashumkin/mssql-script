@@ -53,9 +53,13 @@ module MSSQL
       end
 
       def _test_files(dir, mask)
+        @args << '--mask' << mask
+        @opts = NormalizerOptions.new(@args)
+        @sqlNormalizer = Normalizer.new(@opts)
         @sqlNormalizer.run
         c = 0
-        FileList[File.expand_path('../resources/source/' + mask, __FILE__)].each do |f|
+        filelist = FileList[File.expand_path('../resources/source/' + mask, __FILE__)]
+        filelist.each do |f|
           c += 1
           f_name = File.basename(f)
           f = File.expand_path(f_name, @opts.options.output)
@@ -69,13 +73,10 @@ module MSSQL
 
     public
       def setup
-        args = ['--file', File.expand_path('../resources/source/', __FILE__)]
-        args << '--go'
-        args << '--trailing-spaces' if /tables/.match(name)
-        args << '--mask' << '*.PRC.sql' if /procedures/.match(name)
-        args << '--output' << File.expand_path('../resources/output/', __FILE__)
-        @opts = NormalizerOptions.new(args)
-        @sqlNormalizer = Normalizer.new(@opts)
+        @args = ['--file', File.expand_path('../resources/source/', __FILE__)]
+        @args << '--go'
+        @args << '--trailing-spaces' if /tables/.match(name)
+        @args << '--output' << File.expand_path('../resources/output/', __FILE__)
       end
 
       def test_tables
