@@ -9,14 +9,13 @@ require 'rake'
 require 'unixdiff'
 
 # Ruby 1.9 uses "minitest". There is no `name` property there
-if defined? MiniTest::Unit::TestCase && Test::Unit::TestCase < MiniTest::Unit::TestCase
-  module Test
-    module Unit
-      class TestCase
-        def name
-          __name__
-        end
-      end
+module Test
+  module Unit
+    class TestCase
+      def name
+        __name__
+      # Ruby 1.8. returns strings not symbols
+      end unless TestCase.instance_methods.include?(:name) || TestCase.instance_methods.include?('name')
     end
   end
 end
